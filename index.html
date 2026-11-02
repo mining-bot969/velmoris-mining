@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>VelmorisAgent | Professional Mining</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <!-- Firebase Compat SDK (Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+      :root {
+        --primary-purple: #8A70FF;
+        --light-purple: #F3F0FF;
+        --bg-body: #F8F9FD;
+        --text-dark: #2D2D2D;
+        --text-gray: #9E9E9E;
+        --white: #FFFFFF;
+        --success: #28a745;
+        --warning: #ffc107;
+        --danger: #dc3545;
+      }
+
+      * {
+        box-sizing: border-box; margin: 0; padding: 0;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        background-color: var(--bg-body); color: var(--text-dark);
+        height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+      }
+
+      .news-bar {
+        background: rgba(138, 112, 255, 0.1);
+        margin: 10px 15px 0 15px; padding: 8px 20px;
+        border-radius: 50px; font-size: 11px; color: var(--primary-purple);
+        display: flex; align-items: center; gap: 8px; font-weight: 600;
+      }
+
+      header {
+        padding: 10px 20px 15px 20px;
+        display: flex; justify-content: space-between;
+        align-items: center; z-index: 100;
+      }
+
+      /* Area Profil dibuat interaktif untuk ditekan 5x */
+      .user-info { 
+        display: flex; align-items: center; gap: 10px; 
+        cursor: pointer; user-select: none;
+      }
+      .user-photo {
+        width: 42px; height: 42px; border-radius: 50%;
+        border: 2px solid var(--primary-purple);
+        background-size: cover; background-color: #EEE;
+      }
+      .user-id-box { font-size: 13px; font-weight: 800; }
+      .user-id-box span { display: block; font-size: 9px; color: var(--text-gray); }
+
+      main { flex: 1; overflow-y: auto; padding: 0 15px 120px 15px; }
+      .page { display: none; animation: fadeIn 0.3s ease; }
+      .page.active { display: block; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+      .main-card {
+        background: var(--white); border-radius: 30px;
+        padding: 25px; position: relative;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 15px;
+      }
+      
+      .profit-container { display: flex; justify-content: space-between; align-items: center; }
+      .profit-val { font-size: 32px; font-weight: 800; color: var(--primary-purple); margin-bottom: 15px; }
+      .profit-img { width: 85px; height: auto; border-radius: 10px; }
+
+      .btn-purple {
+        background: var(--primary-purple); color: white;
+        border: none; padding: 12px 25px; border-radius: 50px;
+        font-weight: bold; font-size: 14px; cursor: pointer; width: 100%;
+        transition: 0.2s;
+      }
+      .btn-purple:active { opacity: 0.85; }
+
+      /* Posisi tombol: Deposit di kiri, Claim earnings di kanan */
+      .btn-action-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 5px;
+      }
+
+      .stats-row {
+        display: flex; gap: 10px; margin-top: 20px;
+        border-top: 1px solid #F0F0F0; padding-top: 20px;
+      }
+      .stat-box { 
+        flex: 1; display: flex; align-items: center; gap: 8px; 
+        padding: 10px; border-radius: 20px; background: var(--bg-body);
+        border: 1px solid #F0F0F0;
+      }
+      .stat-icon { 
+        width: 32px; height: 32px; border-radius: 50%; 
+        display: flex; align-items: center; justify-content: center; 
+        background: var(--light-purple); overflow: hidden;
+      }
+      .stat-icon img { width: 100%; height: 100%; object-fit: cover; }
+      .stat-txt div { font-size: 9px; color: var(--text-gray); font-weight: bold; text-transform: uppercase; }
+      .stat-txt span { font-size: 11px; font-weight: 800; }
+
+      .nav-bar {
+        position: fixed; bottom: 0; width: 100%; height: 85px;
+        background: var(--white); display: flex; justify-content: space-around;
+        align-items: center; border-top: 1px solid #EEE; padding-bottom: 20px; z-index: 1000;
+      }
+      .nav-item { text-align: center; color: var(--text-gray); text-decoration: none; width: 80px; }
+      .nav-item.active { color: var(--primary-purple); }
+      .nav-icon-img {
+        width: 24px; height: 24px; display: block; margin: 0 auto 4px auto;
+        filter: grayscale(100%); opacity: 0.6; transition: 0.3s;
+      }
+      .active .nav-icon-img { filter: none; opacity: 1; }
+      .nav-item span { font-size: 10px; font-weight: bold; }
+      .nav-center {
+        width: 60px; height: 60px; background: var(--white);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        margin-top: -45px; border: 5px solid var(--bg-body); 
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1); overflow: hidden;
+      }
+      .nav-center img { width: 100%; height: 100%; object-fit: cover; }
+
+      .input-box {
+        width: 100%; padding: 14px; border: 1px solid #F0F0F0; border-radius: 15px; margin: 8px 0; outline: none; background: #F9F9F9; text-align: center; font-weight: bold;
+      }
+      .task-card {
+        background: white; border-radius: 20px; padding: 15px; display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 10px; border: 1px solid #F0F0F0;
+      }
+
+      /* Android Toast Notification Style */
+      .toast {
+        position: fixed; bottom: 95px; left: 50%; transform: translateX(-50%);
+        background: rgba(35, 35, 35, 0.92); color: #FFF;
+        padding: 9px 18px; border-radius: 25px; font-size: 11px; font-weight: 600;
+        z-index: 3000; opacity: 0; pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s; box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        text-align: center; white-space: nowrap;
+      }
+      .toast.show {
+        opacity: 1; transform: translateX(-50%) translateY(-6px);
+      }
+
+      /* Modal Admin */
+      .modal {
+        display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+        z-index: 2000; justify-content: center; align-items: center; padding: 15px;
+      }
+      .modal.show { display: flex; }
+      .modal-card {
+        background: white; border-radius: 25px; max-width: 500px; width: 100%;
+        max-height: 85vh; overflow-y: auto; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      }
+      .badge-status {
+        font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 20px; text-transform: uppercase;
+      }
+      .badge-pending { background: #FFF3CD; color: #856404; }
+      .badge-success { background: #D4EDDA; color: #155724; }
+      .badge-rejected { background: #F8D7DA; color: #721C24; }
+      .admin-req-card {
+        background: #FDFDFD; border: 1px solid #ECECEC; border-radius: 15px; padding: 12px; margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Toast Popup ala Android -->
+    <div id="dev-toast" class="toast">Mode Admin diaktifkan</div>
+
+    <div class="news-bar">
+      <i class="fas fa-bullhorn"></i>
+      <marquee scrollamount="3">
+        You must make a deposit $2, if you attempt a withdrawal without depositing, your balance will be lost and the withdrawal will not be processed.
+      </marquee>
+    </div>
+
+    <header>
+      <!-- Tekan 5x di area profil ini untuk masuk mode admin -->
+      <div class="user-info" onclick="devModeTap()">
+        <div class="user-photo profile-img-sync"></div>
+        <div class="user-id-box">
+          <span id="header-id">ID: Loading...</span>
+          <span>Verified Miner <i class="fas fa-check-circle" style="color:var(--primary-purple)"></i></span>
+        </div>
+      </div>
+      <button class="btn-purple" style="padding: 8px 15px; font-size: 11px; width: auto;" id="checkin-btn" onclick="doCheckIn()">
+        Claim $0.1
+      </button>
+    </header>
+
+    <main>
+      <!-- HOME PAGE (MINING BOX) -->
+      <section id="home" class="page active">
+        <div class="main-card">
+          <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 5px;">Your profit</p>
+          <div class="profit-container">
+            <h1 class="profit-val" id="pending-val">$0.0000000</h1>
+            <img src="https://i.imgur.com/tx4IEda.png" class="profit-img" />
+          </div>
+
+          <!-- Posisi Tombol: Deposit di KIRI, Claim earnings di KANAN -->
+          <div class="btn-action-group">
+            <button class="btn-purple" onclick="tab('my')" style="flex: 1; padding: 12px 10px; background: #24A1DE;">
+              <i class="fas fa-arrow-circle-down" style="margin-right: 5px;"></i>Deposit
+            </button>
+            <button class="btn-purple" onclick="claimProfit()" style="flex: 1.2; padding: 12px 10px;">
+              Claim earnings
+            </button>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <div class="stat-icon"><img src="https://i.imgur.com/apADqBY.png" /></div>
+              <div class="stat-txt">
+                <div>Rate</div>
+                <span>$0.6/day</span>
+              </div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-icon"><img src="https://i.imgur.com/1gA3bMp.png" /></div>
+              <div class="stat-txt">
+                <div>Balance</div>
+                <span id="usdt-balance">0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROMOTION PAGE -->
+      <section id="promotion" class="page">
+        <h3 style="margin: 15px 5px;">Promotion</h3>
+        <div class="main-card">
+          <p style="font-size: 12px; color: var(--text-gray);">Referral Link (10% Bonus)</p>
+          <div id="ref-link" style="background:var(--light-purple); padding:15px; border-radius:15px; font-size:11px; color:var(--primary-purple); word-break:break-all; margin: 10px 0; border: 1px dashed var(--primary-purple); font-weight: bold;">
+            ...
+          </div>
+          <button class="btn-purple" onclick="copyRef()">Copy Referral Link</button>
+        </div>
+        <h4 style="margin: 10px 5px;">Community Tasks</h4>
+        <div class="task-card">
+          <span style="font-size: 13px; font-weight: 700;">Join Official Channel</span>
+          <button class="btn-purple" style="width: auto; padding: 5px 15px; font-size: 11px;" onclick="window.open('https://t.me/VelmorisAgentOfficial')">Join</button>
+        </div>
+        <div class="task-card">
+          <span style="font-size: 13px; font-weight: 700;">Join Partners</span>
+          <button class="btn-purple" style="width: auto; padding: 5px 15px; font-size: 11px;" onclick="window.open('https://t.me/MinerFi_Bot?start=9373187')">Join</button>
+        </div>
+        <h4 style="margin: 20px 5px 10px 5px;">Partners List</h4>
+        <div class="main-card" id="ref-list-container" style="padding: 15px; font-size: 12px; color: gray; text-align: center;">
+          No partners yet.
+        </div>
+      </section>
+
+      <!-- MY PAGE -->
+      <section id="my" class="page">
+        <h3 style="margin: 15px 5px;">Wallet Center</h3>
+        <!-- Deposit Section -->
+        <div class="main-card">
+          <h4 style="margin-bottom: 10px;">Deposit USDT (BEP20)</h4>
+          <div id="depo-form">
+            <p style="font-size: 10px; font-weight: 800; color: var(--text-gray);">DEPOSIT AMOUNT (MAX $100.00)</p>
+            <input type="number" id="depo-amt" class="input-box" placeholder="e.g. 1" oninput="calcDepoBonus()" />
+            <div id="depo-info" style="background: var(--light-purple); padding: 10px; border-radius: 12px; margin: 10px 0; display: none;">
+              <p style="font-size: 11px; color: var(--primary-purple); font-weight: bold;">
+                Daily Bonus: +$<span id="bonus-val">0.00</span><br />
+                Total Daily Income: $<span id="total-val">0.50</span>
+              </p>
+            </div>
+            <button class="btn-purple" onclick="confirmDeposit()">Confirm Deposit</button>
+          </div>
+          <div id="depo-instructions" style="display: none; text-align: center;">
+            <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 10px;">
+              Send exactly <b id="ins-amt">0</b> USDT (BEP20) to:
+            </p>
+            <div style="background: var(--light-purple); padding: 15px; border-radius: 15px; word-break: break-all; font-family: monospace; font-size: 11px; border: 1px dashed var(--primary-purple); color: var(--primary-purple); font-weight: bold; margin-bottom: 15px;">
+              0xf9a1784a43a2080cdfc42fa284313dd59030b869
+            </div>
+            <button class="btn-purple" onclick="copyDepositAddr()" style="margin-bottom: 10px;">Copy Address</button>
+            <button class="btn-purple" onclick="resetDepo()" style="background: #EEE; color: #777;">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Withdrawal Section -->
+        <div class="main-card">
+          <h4 style="margin-bottom: 10px;">Withdraw</h4>
+          <p style="font-size: 10px; font-weight: 800; color: var(--text-gray);">WALLET ADDRESS (BEP20)</p>
+          <input type="text" id="wd-wallet" class="input-box" placeholder="0x..." oninput="db.wallet=this.value;save()" />
+          <p style="font-size: 10px; font-weight: 800; color: var(--text-gray); margin-top: 10px;">AMOUNT (MIN $1.00)</p>
+          <input type="number" id="wd-amt" class="input-box" placeholder="0.00" />
+          <button class="btn-purple" onclick="processWithdraw()">Withdraw Now</button>
+          <div id="hist-container" style="margin-top: 20px; border-top: 1px solid #F0F0F0; padding-top: 15px;">
+            <p style="text-align:center; color:gray; font-size:11px;">Loading history...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Navigation -->
+    <nav class="nav-bar">
+      <a class="nav-item" href="javascript:void(0)" id="btn-promotion" onclick="tab('promotion')">
+        <img src="https://i.imgur.com/fuqXgQ5.png" class="nav-icon-img" />
+        <span>Promotion</span>
+      </a>
+      <a class="nav-item nav-center" href="javascript:void(0)" id="btn-home" onclick="tab('home')">
+        <img src="https://i.imgur.com/AblDXBC.png" />
+      </a>
+      <a class="nav-item" href="javascript:void(0)" id="btn-my" onclick="tab('my')">
+        <img src="https://i.imgur.com/P76Zatq.png" class="nav-icon-img" />
+        <span>My</span>
+      </a>
+    </nav>
+
+    <!-- MODAL ADMIN PANEL -->
+    <div id="admin-modal" class="modal">
+      <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+          <h3 style="font-size: 16px;"><i class="fas fa-shield-alt" style="color:var(--primary-purple);"></i> Admin Withdrawals</h3>
+          <button onclick="closeAdminModal()" style="border:none; background:none; font-size:18px; cursor:pointer;">&times;</button>
+        </div>
+        <p style="font-size: 11px; color: var(--text-gray); margin-bottom: 12px;">
+          Salin alamat USDT user, kirim dana dari wallet Anda, lalu tandai <b>Success</b>.
+        </p>
+        <div id="admin-req-list">
+          <p style="text-align: center; color: gray; font-size: 12px;">Memuat data penarikan...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ========================================================
+      // 1. KONFIGURASI FIREBASE
+      // ========================================================
+      const firebaseConfig = {
+        apiKey: "AIzaSyDummyKey_GantiDenganMilikAnda",
+        authDomain: "projek-anda.firebaseapp.com",
+        databaseURL: "https://projek-anda-default-rtdb.firebaseio.com",
+        projectId: "projek-anda",
+        storageBucket: "projek-anda.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "1:123456789:web:abcdef"
+      };
+
+      let rtdb = null;
+      try {
+        firebase.initializeApp(firebaseConfig);
+        rtdb = firebase.database();
+      } catch (err) {
+        console.warn("Firebase belum aktif:", err.message);
+      }
+
+      const ADMIN_PIN = "123456"; // PIN Admin
+      const DEPO_ADDR = "0xf9a1784a43a2080cdfc42fa284313dd59030b869";
+
+      const tg = window.Telegram.WebApp;
+      tg.expand();
+      const USER_ID = tg.initDataUnsafe?.user?.id || "5829103";
+      const PHOTO = tg.initDataUnsafe?.user?.photo_url || "https://ui-avatars.com/api/?name=VA&background=8A70FF&color=fff";
+
+      document.querySelectorAll('.profile-img-sync').forEach(el => el.style.backgroundImage = `url('${PHOTO}')`);
+      document.getElementById('header-id').innerText = `ID: ${USER_ID}`;
+      const refLink = `t.me/VelmorisAgentBot?start=${USER_ID}`;
+      document.getElementById('ref-link').innerText = refLink;
+
+      let db = JSON.parse(localStorage.getItem('va_final_v20')) || {
+          usdt: 0.00,
+          pending: 0.00,
+          lastTick: Date.now(),
+          lastCheckin: 0,
+          wallet: "",
+          isAwaitingDeposit: false,
+          awaitingAmount: 0
+      };
+
+      function save() { localStorage.setItem('va_final_v20', JSON.stringify(db)); }
+
+      // ========================================================
+      // SISTEM KETUK 5X ALA MODE PENGEMBANG (DEVELOPER OPTIONS)
+      // ========================================================
+      let devTapCount = 0;
+      let lastTapTime = 0;
+      let toastTimer = null;
+
+      function devModeTap() {
+          const now = Date.now();
+          // Reset jika jarak ketukan lebih dari 1.5 detik
+          if (now - lastTapTime > 1500) {
+              devTapCount = 0;
+          }
+          lastTapTime = now;
+          devTapCount++;
+
+          const remaining = 5 - devTapCount;
+
+          if (remaining > 0 && remaining <= 3) {
+              showToast(`Tinggal ${remaining} langkah lagi untuk menjadi admin.`);
+          } else if (devTapCount >= 5) {
+              devTapCount = 0;
+              showToast("Mode Pengembang/Admin aktif!");
+              setTimeout(() => {
+                  promptAdminLogin();
+              }, 400);
+          }
+      }
+
+      function showToast(msg) {
+          const toast = document.getElementById('dev-toast');
+          toast.innerText = msg;
+          toast.classList.add('show');
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => {
+              toast.classList.remove('show');
+          }, 2000);
+      }
+
+      function promptAdminLogin() {
+          const pin = prompt("🔐 Akses Mode Pengembang Terbuka.\nMasukkan PIN Admin:");
+          if (pin === ADMIN_PIN) {
+              document.getElementById('admin-modal').classList.add('show');
+              loadAdminWithdrawals();
+          } else if (pin !== null) {
+              alert("PIN Admin salah!");
+          }
+      }
+
+      function closeAdminModal() {
+          document.getElementById('admin-modal').classList.remove('show');
+      }
+
+      // --- Deposit logic ---
+      function calcDepoBonus() {
+          let amt = parseFloat(document.getElementById('depo-amt').value) || 0;
+          if (amt > 100) { amt = 100; document.getElementById('depo-amt').value = 100; }
+          const info = document.getElementById('depo-info');
+          if (amt > 0) {
+              info.style.display = 'block';
+              const bonus = amt * 0.1;
+              document.getElementById('bonus-val').innerText = bonus.toFixed(2);
+              document.getElementById('total-val').innerText = (0.50 + bonus).toFixed(2);
+          } else { info.style.display = 'none'; }
+      }
+
+      function confirmDeposit() {
+          const amt = parseFloat(document.getElementById('depo-amt').value);
+          if (!amt || amt <= 0) return alert("Enter valid amount!");
+          
+          alert(`You must send ${amt} USDT to address ${DEPO_ADDR} corresponding to your deposit. Withdrawals not processed without verification.`);
+          
+          db.isAwaitingDeposit = true;
+          db.awaitingAmount = amt;
+          save();
+          updateDepositUI();
+      }
+
+      function updateDepositUI() {
+          const form = document.getElementById('depo-form');
+          const instructions = document.getElementById('depo-instructions');
+          if (db.isAwaitingDeposit) {
+              form.style.display = 'none';
+              instructions.style.display = 'block';
+              document.getElementById('ins-amt').innerText = db.awaitingAmount;
+          } else {
+              form.style.display = 'block';
+              instructions.style.display = 'none';
+          }
+      }
+
+      function copyDepositAddr() {
+          navigator.clipboard.writeText(DEPO_ADDR);
+          alert("Official Wallet Address Copied!");
+      }
+
+      function resetDepo() {
+          db.isAwaitingDeposit = false;
+          db.awaitingAmount = 0;
+          save();
+          updateDepositUI();
+      }
+
+      // --- Mining Engine ---
+      setInterval(() => {
+          const now = Date.now();
+          const elapsed = (now - db.lastTick) / 1000;
+          if(elapsed > 0) {
+              db.pending += (elapsed * (0.5 / 86400));
+              db.lastTick = now;
+              save();
+          }
+          document.getElementById('pending-val').innerText = '$' + db.pending.toFixed(7);
+          document.getElementById('usdt-balance').innerText = db.usdt.toFixed(2);
+          updateCheckinTimer();
+      }, 1000);
+
+      function claimProfit() {
+          if(db.pending < 0.0001) return alert("Belum ada profit yang cukup untuk diklaim!");
+          db.usdt += db.pending; db.pending = 0; save();
+          alert("Profit claimed!");
+      }
+
+      function doCheckIn() {
+          if (Date.now() - db.lastCheckin >= 86400000) {
+              db.usdt += 0.1; db.lastCheckin = Date.now(); save();
+              alert("Check-in Bonus $0.1 Successful!");
+          } else { alert("Wait 24h."); }
+      }
+
+      function updateCheckinTimer() {
+          const diff = 86400000 - (Date.now() - db.lastCheckin);
+          const btn = document.getElementById('checkin-btn');
+          if (diff > 0) { btn.disabled = true; btn.innerText = "Claimed"; } 
+          else { btn.disabled = false; btn.innerText = "Claim $0.1"; }
+      }
+
+      function tab(name) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+          document.getElementById(name).classList.add('active');
+          document.getElementById('btn-' + name).classList.add('active');
+          if(name === 'my') { updateDepositUI(); }
+      }
+
+      function copyRef() { navigator.clipboard.writeText(refLink); alert("Link Copied!"); }
+
+      // --- Penarikan ke Firebase ---
+      function processWithdraw() {
+          const wal = document.getElementById('wd-wallet').value.trim();
+          const amt = parseFloat(document.getElementById('wd-amt').value);
+
+          if(!wal || wal.length < 15) return alert("Masukkan alamat wallet BEP20 yang valid!");
+          if(!amt || amt < 1) return alert("Minimal penarikan adalah $1.00!");
+          if(db.usdt < amt) return alert("Saldo Anda tidak mencukupi!");
+
+          if(!rtdb) {
+              return alert("Firebase belum terhubung. Periksa konfigurasi firebaseConfig!");
+          }
+
+          const newReqRef = rtdb.ref('withdrawals').push();
+          const withdrawData = {
+              id: newReqRef.key,
+              userId: USER_ID.toString(),
+              wallet: wal,
+              amount: amt,
+              status: "pending",
+              createdAt: Date.now(),
+              dateStr: new Date().toLocaleString()
+          };
+
+          newReqRef.set(withdrawData).then(() => {
+              db.usdt -= amt;
+              save();
+              document.getElementById('wd-amt').value = "";
+              alert(`Permintaan penarikan $${amt.toFixed(2)} berhasil dikirim! Menunggu proses verifikasi admin.`);
+          }).catch(err => {
+              alert("Gagal mengirim penarikan: " + err.message);
+          });
+      }
+
+      // Riwayat penarikan pengguna
+      function listenUserWithdrawals() {
+          if(!rtdb) return;
+          rtdb.ref('withdrawals').orderByChild('userId').equalTo(USER_ID.toString()).on('value', snap => {
+              const cont = document.getElementById('hist-container');
+              if (!snap.exists()) {
+                  cont.innerHTML = "<p style='text-align:center;color:gray;font-size:11px;'>Belum ada riwayat penarikan.</p>";
+                  return;
+              }
+
+              let items = [];
+              snap.forEach(child => { items.push(child.val()); });
+              items.reverse();
+
+              cont.innerHTML = `<h4>History Penarikan</h4>` + items.map(h => {
+                  let badge = `<span class="badge-status badge-pending">PENDING</span>`;
+                  if(h.status === 'success') badge = `<span class="badge-status badge-success">SUCCESS</span>`;
+                  if(h.status === 'rejected') badge = `<span class="badge-status badge-rejected">REJECTED</span>`;
+
+                  return `
+                    <div class="task-card" style="padding:10px; margin-bottom:8px; font-size:11px; flex-direction:column; align-items:flex-start; gap:4px;">
+                      <div style="display:flex; justify-content:space-between; width:100%;">
+                        <span><b>$${h.amount.toFixed(2)} USDT</b></span>
+                        ${badge}
+                      </div>
+                      <div style="font-size:10px; color:gray; word-break:break-all;">Alamat: ${h.wallet}</div>
+                      <div style="font-size:9px; color:#aaa;">${h.dateStr || ''}</div>
+                    </div>
+                  `;
+              }).join('');
+          });
+      }
+
+      // Render Admin Panel
+      function loadAdminWithdrawals() {
+          if(!rtdb) {
+              document.getElementById('admin-req-list').innerHTML = "<p style='color:red;'>Firebase belum aktif.</p>";
+              return;
+          }
+
+          rtdb.ref('withdrawals').on('value', snap => {
+              const container = document.getElementById('admin-req-list');
+              if(!snap.exists()) {
+                  container.innerHTML = "<p style='text-align:center; color:gray; font-size:12px;'>Tidak ada permintaan penarikan.</p>";
+                  return;
+              }
+
+              let list = [];
+              snap.forEach(child => { list.push(child.val()); });
+              list.sort((a,b) => b.createdAt - a.createdAt);
+
+              container.innerHTML = list.map(item => {
+                  let badge = `<span class="badge-status badge-pending">PENDING</span>`;
+                  if(item.status === 'success') badge = `<span class="badge-status badge-success">SUCCESS</span>`;
+                  if(item.status === 'rejected') badge = `<span class="badge-status badge-rejected">REJECTED</span>`;
+
+                  return `
+                    <div class="admin-req-card">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <span style="font-size:12px; font-weight:bold;">User ID: ${item.userId}</span>
+                        ${badge}
+                      </div>
+                      <div style="font-size:14px; font-weight:800; color:var(--primary-purple); margin-bottom:6px;">
+                        Jumlah: $${parseFloat(item.amount).toFixed(2)} USDT
+                      </div>
+                      <div style="font-size:11px; background:#F1F1F1; padding:6px; border-radius:6px; word-break:break-all; margin-bottom:8px; font-family:monospace;">
+                        ${item.wallet}
+                      </div>
+                      <div style="display:flex; gap:6px;">
+                        <button onclick="copyText('${item.wallet}')" class="btn-purple" style="flex:1; padding:6px 10px; font-size:11px; background:#6c757d;">
+                          <i class="fas fa-copy"></i> Salin Wallet
+                        </button>
+                        ${item.status === 'pending' ? `
+                          <button onclick="updateStatus('${item.id}', 'success')" class="btn-purple" style="flex:1; padding:6px 10px; font-size:11px; background:var(--success);">
+                            <i class="fas fa-check"></i> Success
+                          </button>
+                          <button onclick="updateStatus('${item.id}', 'rejected')" class="btn-purple" style="flex:1; padding:6px 10px; font-size:11px; background:var(--danger);">
+                            <i class="fas fa-times"></i> Reject
+                          </button>
+                        ` : ''}
+                      </div>
+                    </div>
+                  `;
+              }).join('');
+          });
+      }
+
+      function updateStatus(id, newStatus) {
+          if (!confirm(`Ubah status penarikan ini menjadi ${newStatus.toUpperCase()}?`)) return;
+          rtdb.ref('withdrawals/' + id).update({
+              status: newStatus,
+              updatedAt: Date.now()
+          }).then(() => {
+              alert("Status berhasil diperbarui!");
+          }).catch(err => alert("Gagal update: " + err.message));
+      }
+
+      function copyText(txt) {
+          navigator.clipboard.writeText(txt);
+          alert("Alamat USDT disalin ke clipboard!");
+      }
+
+      window.onload = () => { 
+          document.getElementById('wd-wallet').value = db.wallet;
+          tab('home'); 
+          tg.ready();
+          listenUserWithdrawals();
+      };
+    </script>
+  </body>
+</html>
