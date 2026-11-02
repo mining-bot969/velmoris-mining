@@ -1,1 +1,1 @@
-# velmoris-mining
+# velvet-mining
