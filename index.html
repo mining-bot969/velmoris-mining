@@ -121,13 +121,22 @@
         background: var(--white); display: flex; justify-content: space-around;
         align-items: center; border-top: 1px solid #EEE; padding-bottom: 20px; z-index: 1000;
       }
-      .nav-item { text-align: center; color: var(--text-gray); text-decoration: none; width: 80px; }
-      .nav-item.active { color: var(--primary-purple); }
+      .nav-item { 
+        text-align: center; color: var(--text-dark); text-decoration: none; width: 80px; 
+      }
+      .nav-item.active { 
+        color: var(--primary-purple); 
+      }
+
+      /* Ikon selalu berwarna asli */
       .nav-icon-img {
         width: 24px; height: 24px; display: block; margin: 0 auto 4px auto;
-        filter: grayscale(100%); opacity: 0.6; transition: 0.3s;
+        filter: none !important; opacity: 1 !important; transition: transform 0.2s ease;
       }
-      .active .nav-icon-img { filter: none; opacity: 1; }
+      .nav-item.active .nav-icon-img {
+        transform: scale(1.1);
+      }
+
       .nav-item span { font-size: 10px; font-weight: bold; }
       .nav-center {
         width: 60px; height: 60px; background: var(--white);
@@ -161,7 +170,7 @@
       </marquee>
     </div>
 
-    <!-- HEADER: Logo Centang & Velmoris Agent di Atas ID Pengguna -->
+    <!-- HEADER: Velmoris Agent & Centang di Atas ID -->
     <header>
       <div class="user-info">
         <div class="user-photo profile-img-sync"></div>
@@ -199,11 +208,12 @@
           </div>
 
           <div class="stats-row">
+            <!-- TULISAN RATE DIGANTI MENJADI COIN (0 VA) DENGAN LOGO ASLI -->
             <div class="stat-box">
               <div class="stat-icon"><img src="https://i.imgur.com/apADqBY.png" /></div>
               <div class="stat-txt">
-                <div>Rate</div>
-                <span>$0.6/day</span>
+                <div>Coin</div>
+                <span id="va-balance">0 VA</span>
               </div>
             </div>
             <div class="stat-box">
@@ -216,27 +226,27 @@
           </div>
         </div>
 
-        <!-- Bagian Deposit / Confirm Deposit (Dipindahkan ke Home) -->
+        <!-- Bagian Deposit di Home (Simulasi Bonus USDT + VA Coin) -->
         <div class="main-card" id="home-depo-section" style="display: none; border: 1.5px solid var(--primary-purple);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
             <h4 style="font-size: 14px;">Deposit USDT (BEP20)</h4>
             <span onclick="toggleDepositHome()" style="font-size: 20px; font-weight: bold; color: var(--text-gray); cursor: pointer; line-height: 1;">&times;</span>
           </div>
 
-          <!-- Form Deposit Pengguna -->
           <div id="depo-form">
             <p style="font-size: 10px; font-weight: 800; color: var(--text-gray);">DEPOSIT AMOUNT (MAX $100.00)</p>
-            <input type="number" id="depo-amt" class="input-box" placeholder="e.g. 2" oninput="calcDepoBonus()" />
-            <div id="depo-info" style="background: var(--light-purple); padding: 10px; border-radius: 12px; margin: 10px 0; display: none;">
-              <p style="font-size: 11px; color: var(--primary-purple); font-weight: bold;">
-                Daily Bonus: +$<span id="bonus-val">0.00</span><br />
+            <input type="number" id="depo-amt" class="input-box" placeholder="e.g. 1" oninput="calcDepoBonus()" />
+            
+            <!-- Tampilan Simulasi Profit Baru (+Bonus USDT dan +VA Coin) -->
+            <div id="depo-info" style="background: var(--light-purple); padding: 12px; border-radius: 12px; margin: 10px 0; display: none;">
+              <p style="font-size: 11px; color: var(--primary-purple); font-weight: bold; line-height: 1.6;">
+                Daily Bonus: +$<span id="bonus-val">0.00</span> + <span id="bonus-va-val">0</span> VA<br />
                 Total Daily Income: $<span id="total-val">0.50</span>
               </p>
             </div>
             <button class="btn-purple" onclick="confirmDeposit()">Confirm Deposit</button>
           </div>
 
-          <!-- Tampilan Setelah Confirm Deposit -->
           <div id="depo-instructions" style="display: none; text-align: center;">
             <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 10px;">
               Send exactly <b id="ins-amt">0</b> USDT (BEP20) to:
@@ -254,7 +264,7 @@
       <section id="promotion" class="page">
         <h3 style="margin: 15px 5px;">Promotion</h3>
 
-        <!-- 1. Community Tasks -->
+        <!-- Community Tasks -->
         <h4 style="margin: 10px 5px;">Community Tasks</h4>
         <div class="task-card">
           <span style="font-size: 13px; font-weight: 700;">Join Official Channel</span>
@@ -265,7 +275,7 @@
           <button class="btn-purple" style="width: auto; padding: 5px 15px; font-size: 11px;" onclick="window.open('https://t.me/MinerFi_Bot?start=9373187')">Join</button>
         </div>
 
-        <!-- 2. Referral Link -->
+        <!-- Referral Program -->
         <h4 style="margin: 20px 5px 5px 5px;">Referral Program</h4>
         <div class="main-card">
           <p style="font-size: 12px; color: var(--text-gray);">Referral Link (10% Bonus)</p>
@@ -275,7 +285,7 @@
           <button class="btn-purple" onclick="copyRef()">Copy Referral Link</button>
         </div>
 
-        <!-- 3. Partners List -->
+        <!-- Partners List -->
         <h4 style="margin: 15px 5px 10px 5px;">Partners List</h4>
         <div class="main-card" id="ref-list-container" style="padding: 15px; font-size: 12px; color: gray; text-align: center;">
           No partners yet.
@@ -286,7 +296,7 @@
       <section id="my" class="page">
         <h3 style="margin: 15px 5px;">Wallet Center</h3>
 
-        <!-- Fitur Penarikan (Minimal $0.10) -->
+        <!-- Form Penarikan -->
         <div class="main-card">
           <h4 style="margin-bottom: 10px;">Withdraw USDT (BEP20)</h4>
           <p style="font-size: 10px; font-weight: 800; color: var(--text-gray);">WALLET ADDRESS (BEP20)</p>
@@ -297,9 +307,9 @@
           
           <button class="btn-purple" onclick="processWithdraw()">Withdraw Now</button>
           
-          <!-- Riwayat Penarikan Berisi Alamat USDT Pengguna -->
+          <!-- Daftar Riwayat Penarikan (Menampilkan Alamat USDT Pengguna) -->
           <div id="hist-container" style="margin-top: 20px; border-top: 1px solid #F0F0F0; padding-top: 15px;">
-            <p style="text-align:center; color:gray; font-size:11px;">Loading history...</p>
+            <!-- Riwayat akan dimuat di sini -->
           </div>
         </div>
       </section>
@@ -322,7 +332,7 @@
 
     <script>
       // ========================================================
-      // 1. TEMPELKAN FIREBASE CONFIG MILIK ANDA DI SINI
+      // 1. KONFIGURASI FIREBASE (Opsional: Isi jika punya akun)
       // ========================================================
       const firebaseConfig = {
         apiKey: "AIzaSyDummyKey_GantiDenganMilikAnda",
@@ -336,10 +346,12 @@
 
       let rtdb = null;
       try {
-        firebase.initializeApp(firebaseConfig);
-        rtdb = firebase.database();
+        if (firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("DummyKey")) {
+          firebase.initializeApp(firebaseConfig);
+          rtdb = firebase.database();
+        }
       } catch (err) {
-        console.warn("Firebase belum aktif:", err.message);
+        console.warn("Firebase belum aktif, menggunakan mode penyimpanan lokal:", err.message);
       }
 
       const DEPO_ADDR = "0xf9a1784a43a2080cdfc42fa284313dd59030b869";
@@ -354,20 +366,26 @@
       const refLink = `t.me/VelmorisAgentBot?start=${USER_ID}`;
       document.getElementById('ref-link').innerText = refLink;
 
+      // Database Lokal Pengguna
       let db = JSON.parse(localStorage.getItem('va_final_v20')) || {
           usdt: 0.00,
           pending: 0.00,
+          va: 0, // Koin VA
           lastTick: Date.now(),
           lastCheckin: 0,
           wallet: "",
           isAwaitingDeposit: false,
-          awaitingAmount: 0
+          awaitingAmount: 0,
+          withdrawals: [] // Daftar riwayat tersimpan lokal
       };
+
+      if (!db.withdrawals) db.withdrawals = [];
+      if (typeof db.va === 'undefined') db.va = 0;
 
       function save() { localStorage.setItem('va_final_v20', JSON.stringify(db)); }
 
       // ========================================================
-      // LOGIKA DEPOSIT DI HOME
+      // DEPOSIT & SIMULASI BONUS (USDT + VA COIN)
       // ========================================================
       function toggleDepositHome() {
           const depoCard = document.getElementById('home-depo-section');
@@ -389,10 +407,17 @@
           const info = document.getElementById('depo-info');
           if (amt > 0) {
               info.style.display = 'block';
-              const bonus = amt * 0.1;
-              document.getElementById('bonus-val').innerText = bonus.toFixed(2);
-              document.getElementById('total-val').innerText = (0.50 + bonus).toFixed(2);
-          } else { info.style.display = 'none'; }
+              
+              // Perhitungan: Deposit $1 bonus $0.10 USDT + 1 VA Coin
+              const bonusUsdt = amt * 0.1;
+              const bonusVa = Math.floor(amt * 1);
+
+              document.getElementById('bonus-val').innerText = bonusUsdt.toFixed(2);
+              document.getElementById('bonus-va-val').innerText = bonusVa;
+              document.getElementById('total-val').innerText = (0.50 + bonusUsdt).toFixed(2);
+          } else { 
+              info.style.display = 'none'; 
+          }
       }
 
       function confirmDeposit() {
@@ -413,158 +438,4 @@
           if (db.isAwaitingDeposit) {
               form.style.display = 'none';
               instructions.style.display = 'block';
-              document.getElementById('ins-amt').innerText = db.awaitingAmount;
-          } else {
-              form.style.display = 'block';
-              instructions.style.display = 'none';
-          }
-      }
-
-      function copyDepositAddr() {
-          navigator.clipboard.writeText(DEPO_ADDR);
-          alert("Official Wallet Address Copied!");
-      }
-
-      function resetDepo() {
-          db.isAwaitingDeposit = false;
-          db.awaitingAmount = 0;
-          save();
-          updateDepositUI();
-      }
-
-      // ========================================================
-      // MINING ENGINE
-      // ========================================================
-      setInterval(() => {
-          const now = Date.now();
-          const elapsed = (now - db.lastTick) / 1000;
-          if(elapsed > 0) {
-              db.pending += (elapsed * (0.5 / 86400));
-              db.lastTick = now;
-              save();
-          }
-          document.getElementById('pending-val').innerText = '$' + db.pending.toFixed(7);
-          document.getElementById('usdt-balance').innerText = db.usdt.toFixed(2);
-          updateCheckinTimer();
-      }, 1000);
-
-      function claimProfit() {
-          if(db.pending < 0.0001) return alert("Belum ada profit yang cukup untuk diklaim!");
-          db.usdt += db.pending; db.pending = 0; save();
-          alert("Profit claimed!");
-      }
-
-      function doCheckIn() {
-          if (Date.now() - db.lastCheckin >= 86400000) {
-              db.usdt += 0.1; db.lastCheckin = Date.now(); save();
-              alert("Check-in Bonus $0.1 Successful!");
-          } else { alert("Wait 24h."); }
-      }
-
-      function updateCheckinTimer() {
-          const diff = 86400000 - (Date.now() - db.lastCheckin);
-          const btn = document.getElementById('checkin-btn');
-          if (diff > 0) { btn.disabled = true; btn.innerText = "Claimed"; } 
-          else { btn.disabled = false; btn.innerText = "Claim $0.1"; }
-      }
-
-      function tab(name) {
-          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-          document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-          document.getElementById(name).classList.add('active');
-          document.getElementById('btn-' + name).classList.add('active');
-      }
-
-      function copyRef() { navigator.clipboard.writeText(refLink); alert("Link Copied!"); }
-
-      // ========================================================
-      // PENARIKAN (TERKONEKSI KE FIREBASE)
-      // ========================================================
-      function processWithdraw() {
-          const wal = document.getElementById('wd-wallet').value.trim();
-          const amt = parseFloat(document.getElementById('wd-amt').value);
-
-          if(!wal || wal.length < 15) return alert("Masukkan alamat wallet BEP20 yang valid!");
-          if(!amt || amt < 0.1) return alert("Minimal penarikan adalah $0.10!");
-          if(db.usdt < amt) return alert("Saldo Anda tidak mencukupi!");
-
-          if(!rtdb) {
-              return alert("Firebase belum terhubung. Periksa konfigurasi firebaseConfig!");
-          }
-
-          // Kirim data penarikan lengkap ke Firebase
-          const newReqRef = rtdb.ref('withdrawals').push();
-          const withdrawData = {
-              id: newReqRef.key,
-              userId: USER_ID.toString(),
-              wallet: wal,
-              amount: amt,
-              status: "pending",
-              createdAt: Date.now(),
-              dateStr: new Date().toLocaleString()
-          };
-
-          newReqRef.set(withdrawData).then(() => {
-              db.usdt -= amt;
-              save();
-              document.getElementById('wd-amt').value = "";
-              alert(`Permintaan penarikan $${amt.toFixed(2)} berhasil dikirim! Menunggu proses verifikasi admin.`);
-          }).catch(err => {
-              alert("Gagal mengirim penarikan: " + err.message);
-          });
-      }
-
-      // ========================================================
-      // RIWAYAT PENARIKAN (BERISI ALAMAT USDT UNTUK DATA ADMIN)
-      // ========================================================
-      function listenUserWithdrawals() {
-          if(!rtdb) return;
-          rtdb.ref('withdrawals').orderByChild('userId').equalTo(USER_ID.toString()).on('value', snap => {
-              const cont = document.getElementById('hist-container');
-              if (!snap.exists()) {
-                  cont.innerHTML = "<p style='text-align:center;color:gray;font-size:11px;'>Belum ada riwayat penarikan.</p>";
-                  return;
-              }
-
-              let items = [];
-              snap.forEach(child => { items.push(child.val()); });
-              items.reverse();
-
-              cont.innerHTML = `<h4>History Penarikan</h4>` + items.map(h => {
-                  let badge = `<span class="badge-status badge-pending">PENDING</span>`;
-                  if(h.status === 'success') badge = `<span class="badge-status badge-success">SUCCESS</span>`;
-                  if(h.status === 'rejected') badge = `<span class="badge-status badge-rejected">REJECTED</span>`;
-
-                  return `
-                    <div class="task-card" style="padding:12px; margin-bottom:10px; font-size:11px; flex-direction:column; align-items:flex-start; gap:6px;">
-                      <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                        <span style="font-size:13px; font-weight:800; color:var(--text-dark);">$${parseFloat(h.amount).toFixed(2)} USDT</span>
-                        ${badge}
-                      </div>
-                      
-                      <!-- Kotak Alamat USDT Pengguna (Mudah dilihat user & admin) -->
-                      <div style="width:100%; background:#F8F9FD; padding:8px 10px; border-radius:10px; border:1px solid #EFEFEF;">
-                        <div style="font-size:9px; color:var(--text-gray); font-weight:bold; margin-bottom:2px;">ALAMAT USDT (BEP20):</div>
-                        <div style="font-size:10px; font-family:monospace; color:#333; word-break:break-all; font-weight:600;">${h.wallet}</div>
-                      </div>
-
-                      <div style="display:flex; justify-content:space-between; width:100%; font-size:9px; color:#aaa; margin-top:2px;">
-                        <span>ID: ${h.userId || USER_ID}</span>
-                        <span>${h.dateStr || ''}</span>
-                      </div>
-                    </div>
-                  `;
-              }).join('');
-          });
-      }
-
-      window.onload = () => { 
-          document.getElementById('wd-wallet').value = db.wallet;
-          tab('home'); 
-          updateDepositUI();
-          tg.ready();
-          listenUserWithdrawals();
-      };
-    </script>
-  </body>
-</html>
+            
