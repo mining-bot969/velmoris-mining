@@ -131,7 +131,7 @@
         <div id="depo-instructions" style="display: none; text-align: center;">
           <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 10px;">Send exactly <b id="ins-amt">0</b> USDT (BEP20) to:</p>
           <div style="background: var(--light-purple); padding: 15px; border-radius: 15px; word-break: break-all; font-family: monospace; font-size: 11px; border: 1px dashed var(--primary-purple); color: var(--primary-purple); font-weight: bold; margin-bottom: 15px;">
-            0xf9a1784a43a2080cdfc42fa284313dd59030b869
+            0xd09d11a4f9c6de53b0b3e5d99ba2440231f833af
           </div>
           <button class="btn-purple" onclick="copyDepositAddr()" style="margin-bottom: 10px;">Copy Address</button>
           <button class="btn-purple" onclick="resetDepo()" style="background: #EEE; color: #777;">Cancel</button>
@@ -198,7 +198,7 @@
         <h4 style="margin-bottom: 10px;">Withdraw USDT (BEP20)</h4>
         <p style="font-size: 10px; font-weight: 800; color: var(--text-gray);">WALLET ADDRESS (BEP20)</p>
         <input type="text" id="wd-wallet" class="input-box" placeholder="0x..." oninput="db.wallet=this.value;save()" />
-        <p style="font-size: 10px; font-weight: 800; color: var(--text-gray); margin-top: 10px;">AMOUNT (MIN $0.10)</p>
+        <p style="font-size: 10px; font-weight: 800; color: var(--text-gray); margin-top: 10px;">AMOUNT (MIN $1.00)</p>
         <input type="number" id="wd-amt" class="input-box" placeholder="0.10" step="0.01" />
         <button class="btn-purple" onclick="processWithdraw()">Withdraw Now</button>
         <div id="hist-container" style="margin-top: 20px; border-top: 1px solid #F0F0F0; padding-top: 15px;"></div>
